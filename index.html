@@ -4,63 +4,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>簽到系統</title>
+    <title>社團簽到系統</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #eef2f5;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
         }
 
         .card {
-            max-width: 400px;
+            max-width: 450px;
             width: 100%;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
         .btn-primary {
             width: 100%;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-radius: 8px;
         }
 
-        /* 載入動畫 */
+        .form-control {
+            border-radius: 8px;
+            padding: 10px;
+        }
+
         .spinner-border {
             display: none;
-            width: 1rem;
-            height: 1rem;
-            margin-right: 5px;
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-right: 8px;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="card p-4">
-        <h3 class="text-center mb-4">社團簽到</h3>
+    <div class="card p-4 p-md-5">
+        <h3 class="text-center mb-4 text-primary fw-bold">🖥️ 社團簽到</h3>
 
         <form id="checkinForm">
-            <div class="mb-3">
-                <label for="password" class="form-label text-danger fw-bold">密碼</label>
-                <input type="number" class="form-control border-danger" id="password" placeholder="請輸入當日密碼" required>
+            <div class="mb-4">
+                <label for="password" class="form-label text-danger fw-bold">🔑 當日密碼</label>
+                <input type="number" class="form-control border-danger" id="password" placeholder="老師公布的密碼" required>
             </div>
-            <hr>
-            <div class="row mb-3">
-                <div class="col">
+
+            <div class="row g-3 mb-3">
+                <div class="col-6">
                     <label for="classNo" class="form-label">班級</label>
                     <input type="text" class="form-control" id="classNo" placeholder="203" required>
                 </div>
-                <div class="col">
+                <div class="col-6">
                     <label for="seatNo" class="form-label">座號</label>
                     <input type="number" class="form-control" id="seatNo" placeholder="15" required>
                 </div>
             </div>
 
             <div class="mb-3">
-                <label for="pcNo" class="form-label">電腦編號</label>
-                <input type="text" class="form-control" id="pcNo" placeholder="例如：A-01 或 05" required>
+                <label for="pcNo" class="form-label fw-bold text-success">💻 電腦編號</label>
+                <input type="text" class="form-control border-success" id="pcNo" placeholder="例如：A-05 (請看主機或螢幕)"
+                    required>
+                <div class="form-text">請務必填寫正確，重複填寫將無法簽到。</div>
             </div>
 
             <div class="mb-3">
@@ -68,7 +80,7 @@
                 <input type="text" class="form-control" id="studentId" required>
             </div>
 
-            <div class="mb-3">
+            <div class="mb-4">
                 <label for="name" class="form-label">姓名</label>
                 <input type="text" class="form-control" id="name" required>
             </div>
@@ -79,17 +91,16 @@
             </button>
         </form>
 
-        <div id="statusMessage" class="mt-3 text-center fw-bold"></div>
+        <div id="statusMessage" class="mt-4 text-center fw-bold"></div>
     </div>
 
     <script>
-        // 你的 Apps Script 網址 (請確認網址正確)
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycby9f_jlv7pviGuwdOBExjzYX2Vn9XFoL156vT54uVSv8aEAciyirNg7lBWy8ye4co4I/exec';
+        // ★★★ 請替換成你的 Google Apps Script 網址 ★★★
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyRgNTuGx7jDqkkKL2s6-1Zj7DUXO_3OpySs8WxDPMt4HBE3NYIhkKjDU3Gn5T8qbtq/exec';
 
-        // 網頁一載入就檢查是否已簽到
+        // 檢查本機是否已簽到
         if (localStorage.getItem('hasCheckIn') === 'true') {
-            document.getElementById('checkinForm').style.display = 'none';
-            document.getElementById('statusMessage').textContent = '此裝置已完成簽到，請勿重複提交。';
+            disableForm('⚠️ 此裝置已完成簽到，請勿重複提交。');
         }
 
         document.getElementById('checkinForm').addEventListener('submit', function (e) {
@@ -99,60 +110,81 @@
             const spinner = document.querySelector('.spinner-border');
             const msg = document.getElementById('statusMessage');
 
-            // 鎖定按鈕與顯示動畫
+            // 鎖定介面
             btn.disabled = true;
             spinner.style.display = 'inline-block';
-            msg.textContent = '';
-            msg.className = 'mt-3 text-center fw-bold'; // 重置顏色
+            btn.innerHTML = '<span class="spinner-border" role="status"></span> 連線中...';
+            msg.textContent = '正在驗證網路環境...';
+            msg.className = 'mt-4 text-center fw-bold text-muted';
 
-            // 收集資料 (新增 pcNo)
-            const payload = {
-                password: document.getElementById('password').value,
-                classNo: document.getElementById('classNo').value,
-                seatNo: document.getElementById('seatNo').value,
-                pcNo: document.getElementById('pcNo').value, // 新增：電腦編號
-                studentId: document.getElementById('studentId').value,
-                name: document.getElementById('name').value
-            };
+            // 1. 取得 IP 位址 (使用 ipify API)
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(ipData => {
+                    return ipData.ip;
+                })
+                .catch(err => {
+                    console.warn('無法取得 IP:', err);
+                    return '無法取得 IP'; // 即使抓不到 IP 也要讓學生簽到
+                })
+                .then(userIP => {
+                    // 2. 準備傳送資料
+                    const payload = {
+                        password: document.getElementById('password').value,
+                        classNo: document.getElementById('classNo').value,
+                        seatNo: document.getElementById('seatNo').value,
+                        pcNo: document.getElementById('pcNo').value,
+                        studentId: document.getElementById('studentId').value,
+                        name: document.getElementById('name').value,
+                        ip: userIP // 傳送 IP
+                    };
 
-            fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload),
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                redirect: 'follow'
-            })
+                    // 3. 傳送至 Google Apps Script
+                    return fetch(GAS_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload),
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        redirect: 'follow'
+                    });
+                })
                 .then(res => res.json())
                 .then(data => {
+                    // 4. 處理後端回應
                     if (data.result === 'success') {
-                        // 1. 寫入瀏覽器紀錄
                         localStorage.setItem('hasCheckIn', 'true');
-
-                        // 2. 隱藏表單，顯示成功訊息
-                        document.getElementById('checkinForm').style.display = 'none';
-                        document.getElementById('statusMessage').innerHTML = '簽到完成！<br>一台裝置僅限簽到一次。';
+                        disableForm('簽到成功！');
+                        msg.classList.add('text-success');
                     } else if (data.result === 'wrong_password') {
-                        msg.textContent = '密碼錯誤，請重新輸入。';
-                        msg.classList.add('text-danger');
-                        document.getElementById('password').value = '';
-                        document.getElementById('password').focus();
+                        throw new Error('密碼錯誤。');
+                    } else if (data.result === 'duplicate_pc') {
+                        throw new Error(`電腦編號 ${data.pcNo} 已被使用！<br>請勿代簽或重複簽到。`);
                     } else {
-                        throw new Error(data.error);
+                        throw new Error('系統錯誤：' + (data.error || '未知原因'));
                     }
                 })
                 .catch(err => {
-                    console.error(err);
-                    // 寬容處理
-                    msg.textContent = '簽到成功 (或網路回應延遲)';
-                    msg.classList.add('text-success');
-                    document.getElementById('checkinForm').reset();
-                })
-                .finally(() => {
+                    msg.innerHTML = err.message;
+                    msg.className = 'mt-4 text-center fw-bold text-danger';
+
+                    // 如果是密碼錯，清空密碼欄位
+                    if (err.message.includes('密碼錯誤')) {
+                        document.getElementById('password').value = '';
+                    }
+
+                    // 恢復按鈕
                     btn.disabled = false;
+                    btn.innerHTML = '送出簽到';
                     spinner.style.display = 'none';
                 });
         });
+
+        function disableForm(message) {
+            document.getElementById('checkinForm').style.display = 'none';
+            const msgDiv = document.getElementById('statusMessage');
+            msgDiv.innerHTML = message;
+            msgDiv.className = 'mt-4 text-center fw-bold text-success';
+            if (message.includes('⚠️')) msgDiv.className = 'mt-4 text-center fw-bold text-warning';
+        }
     </script>
 
 </body>
