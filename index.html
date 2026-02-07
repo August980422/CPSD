@@ -56,7 +56,7 @@
 
 <script>
     // 你的 Apps Script 網址
-    const GAS_URL = 'https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbz0ThXjL6VkqophlmGIwnxjxQp6GdF5T055PjSJzNyoC3awozCvK99vLni5HueE4_AY/exec/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycby9f_jlv7pviGuwdOBExjzYX2Vn9XFoL156vT54uVSv8aEAciyirNg7lBWy8ye4co4I/exec';
 
     document.getElementById('checkinForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -83,7 +83,12 @@
         fetch(GAS_URL, {
             method: 'POST',
             body: JSON.stringify(payload),
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            headers: {
+                // 使用 text/plain 可以避免瀏覽器發送預檢請求 (OPTIONS)，這是 GAS 的一個技巧
+                'Content-Type': 'text/plain;charset=utf-8' 
+            },
+            // Google Apps Script 會回傳 302 轉址，必須設定 follow 才能拿到正確的回應
+            redirect: 'follow' 
         })
         .then(res => res.json())
         .then(data => {
