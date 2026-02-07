@@ -75,7 +75,7 @@
 
             <div class="mb-3">
                 <label for="pcNo" class="form-label fw-bold text-success">電腦編號</label>
-                <input type="text" class="form-control border-success" id="pcNo" placeholder="例如：A-05 (手機請填無)" required>
+                <input type="text" class="form-control border-success" id="pcNo" placeholder="例如：5" required>
             </div>
 
             <div class="mb-3">
@@ -138,7 +138,7 @@
                 (error) => {
                     // 定位失敗
                     console.error(error);
-                    handleError("❌ 無法取得位置！<br>請允許瀏覽器存取 GPS 定位後再試。");
+                    handleError("無法取得位置！<br>請允許瀏覽器存取 GPS 定位後再試。");
                 },
                 { enableHighAccuracy: true, timeout: 10000 } // 設定高精確度，10秒逾時
             );
