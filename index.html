@@ -39,7 +39,7 @@
 <body>
 
     <div class="card p-4">
-        <h3 class="text-center mb-4">📝 社團簽到</h3>
+        <h3 class="text-center mb-4">社團簽到</h3>
 
         <form id="checkinForm">
             <div class="mb-3">
@@ -89,7 +89,7 @@
         // 網頁一載入就檢查是否已簽到
         if (localStorage.getItem('hasCheckIn') === 'true') {
             document.getElementById('checkinForm').style.display = 'none';
-            document.getElementById('statusMessage').textContent = '⚠️ 此裝置已完成簽到，請勿重複提交。';
+            document.getElementById('statusMessage').textContent = '此裝置已完成簽到，請勿重複提交。';
         }
 
         document.getElementById('checkinForm').addEventListener('submit', function (e) {
@@ -131,9 +131,9 @@
 
                         // 2. 隱藏表單，顯示成功訊息
                         document.getElementById('checkinForm').style.display = 'none';
-                        document.getElementById('statusMessage').innerHTML = '✅ 簽到完成！<br>一台裝置僅限簽到一次。';
+                        document.getElementById('statusMessage').innerHTML = '簽到完成！<br>一台裝置僅限簽到一次。';
                     } else if (data.result === 'wrong_password') {
-                        msg.textContent = '❌ 密碼錯誤，請重新輸入。';
+                        msg.textContent = '密碼錯誤，請重新輸入。';
                         msg.classList.add('text-danger');
                         document.getElementById('password').value = '';
                         document.getElementById('password').focus();
@@ -144,7 +144,7 @@
                 .catch(err => {
                     console.error(err);
                     // 寬容處理
-                    msg.textContent = '✅ 簽到成功 (或網路回應延遲)';
+                    msg.textContent = '簽到成功 (或網路回應延遲)';
                     msg.classList.add('text-success');
                     document.getElementById('checkinForm').reset();
                 })
