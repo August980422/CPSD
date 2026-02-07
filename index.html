@@ -43,6 +43,11 @@
             height: 1.2rem;
             margin-right: 8px;
         }
+
+        .alert-custom {
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -69,10 +74,10 @@
             </div>
 
             <div class="mb-3">
-                <label for="pcNo" class="form-label fw-bold text-success">💻 電腦編號</label>
+                <label for="pcNo" class="form-label fw-bold text-success">電腦編號</label>
                 <input type="text" class="form-control border-success" id="pcNo" placeholder="例如：A-05 (請看主機或螢幕)"
                     required>
-                <div class="form-text">請務必填寫正確，重複填寫將無法簽到。</div>
+                <div class="form-text text-muted">請務必填寫正確，重複填寫將無法簽到。</div>
             </div>
 
             <div class="mb-3">
@@ -96,9 +101,9 @@
 
     <script>
         // ★★★ 請替換成你的 Google Apps Script 網址 ★★★
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyRgNTuGx7jDqkkKL2s6-1Zj7DUXO_3OpySs8WxDPMt4HBE3NYIhkKjDU3Gn5T8qbtq/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxqG2sKo9qv6YS_RzvDUnwFoHioZ_GzkGuVOGQbNophkHwJOAEgZu2UZaIDQZBAAAfN/exec';
 
-        // 檢查本機是否已簽到
+        // 檢查本機是否已簽到 (LocalStorage 防禦)
         if (localStorage.getItem('hasCheckIn') === 'true') {
             disableForm('⚠️ 此裝置已完成簽到，請勿重複提交。');
         }
@@ -113,9 +118,9 @@
             // 鎖定介面
             btn.disabled = true;
             spinner.style.display = 'inline-block';
-            btn.innerHTML = '<span class="spinner-border" role="status"></span> 連線中...';
-            msg.textContent = '正在驗證網路環境...';
-            msg.className = 'mt-4 text-center fw-bold text-muted';
+            btn.innerHTML = '<span class="spinner-border" role="status"></span> 偵測環境中...';
+            msg.textContent = '';
+            msg.className = '';
 
             // 1. 取得 IP 位址 (使用 ipify API)
             fetch('https://api.ipify.org?format=json')
@@ -125,7 +130,7 @@
                 })
                 .catch(err => {
                     console.warn('無法取得 IP:', err);
-                    return '無法取得 IP'; // 即使抓不到 IP 也要讓學生簽到
+                    return '無法取得 IP (可能被阻擋)';
                 })
                 .then(userIP => {
                     // 2. 準備傳送資料
@@ -136,8 +141,12 @@
                         pcNo: document.getElementById('pcNo').value,
                         studentId: document.getElementById('studentId').value,
                         name: document.getElementById('name').value,
-                        ip: userIP // 傳送 IP
+                        ip: userIP, // 傳送 IP
+                        ua: navigator.userAgent // 傳送裝置資訊 (User Agent)
                     };
+
+                    // 更新按鈕狀態
+                    btn.innerHTML = '<span class="spinner-border" role="status"></span> 資料傳送中...';
 
                     // 3. 傳送至 Google Apps Script
                     return fetch(GAS_URL, {
@@ -151,24 +160,27 @@
                 .then(data => {
                     // 4. 處理後端回應
                     if (data.result === 'success') {
+                        // 寫入 LocalStorage
                         localStorage.setItem('hasCheckIn', 'true');
-                        disableForm('簽到成功！');
+                        disableForm('簽到成功！<br><small class="text-muted">已紀錄電腦編號與 IP 位址</small>');
                         msg.classList.add('text-success');
                     } else if (data.result === 'wrong_password') {
-                        throw new Error('密碼錯誤。');
+                        throw new Error('密碼錯誤，請重新輸入。');
                     } else if (data.result === 'duplicate_pc') {
-                        throw new Error(`電腦編號 ${data.pcNo} 已被使用！<br>請勿代簽或重複簽到。`);
+                        throw new Error(`電腦編號 <u>${data.pcNo}</u> 已被使用！<br>請勿重複簽到或代簽。`);
                     } else {
                         throw new Error('系統錯誤：' + (data.error || '未知原因'));
                     }
                 })
                 .catch(err => {
+                    // 顯示錯誤訊息
                     msg.innerHTML = err.message;
                     msg.className = 'mt-4 text-center fw-bold text-danger';
 
                     // 如果是密碼錯，清空密碼欄位
                     if (err.message.includes('密碼錯誤')) {
                         document.getElementById('password').value = '';
+                        document.getElementById('password').focus();
                     }
 
                     // 恢復按鈕
