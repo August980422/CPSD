@@ -59,6 +59,11 @@
             </div>
 
             <div class="mb-3">
+                <label for="pcNo" class="form-label">電腦編號</label>
+                <input type="text" class="form-control" id="pcNo" placeholder="例如：A-01 或 05" required>
+            </div>
+
+            <div class="mb-3">
                 <label for="studentId" class="form-label">學號</label>
                 <input type="text" class="form-control" id="studentId" required>
             </div>
@@ -78,14 +83,15 @@
     </div>
 
     <script>
-        // 你的 Apps Script 網址
+        // 你的 Apps Script 網址 (請確認網址正確)
         const GAS_URL = 'https://script.google.com/macros/s/AKfycby9f_jlv7pviGuwdOBExjzYX2Vn9XFoL156vT54uVSv8aEAciyirNg7lBWy8ye4co4I/exec';
 
-        // 網頁一載入就檢查
+        // 網頁一載入就檢查是否已簽到
         if (localStorage.getItem('hasCheckIn') === 'true') {
             document.getElementById('checkinForm').style.display = 'none';
             document.getElementById('statusMessage').textContent = '⚠️ 此裝置已完成簽到，請勿重複提交。';
         }
+
         document.getElementById('checkinForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
@@ -99,11 +105,12 @@
             msg.textContent = '';
             msg.className = 'mt-3 text-center fw-bold'; // 重置顏色
 
-            // 收集資料
+            // 收集資料 (新增 pcNo)
             const payload = {
-                password: document.getElementById('password').value, // 傳送學生輸入的密碼
+                password: document.getElementById('password').value,
                 classNo: document.getElementById('classNo').value,
                 seatNo: document.getElementById('seatNo').value,
+                pcNo: document.getElementById('pcNo').value, // 新增：電腦編號
                 studentId: document.getElementById('studentId').value,
                 name: document.getElementById('name').value
             };
@@ -112,15 +119,12 @@
                 method: 'POST',
                 body: JSON.stringify(payload),
                 headers: {
-                    // 使用 text/plain 可以避免瀏覽器發送預檢請求 (OPTIONS)，這是 GAS 的一個技巧
                     'Content-Type': 'text/plain;charset=utf-8'
                 },
-                // Google Apps Script 會回傳 302 轉址，必須設定 follow 才能拿到正確的回應
                 redirect: 'follow'
             })
                 .then(res => res.json())
                 .then(data => {
-                    // ...前面的 fetch 成功代碼
                     if (data.result === 'success') {
                         // 1. 寫入瀏覽器紀錄
                         localStorage.setItem('hasCheckIn', 'true');
@@ -129,7 +133,7 @@
                         document.getElementById('checkinForm').style.display = 'none';
                         document.getElementById('statusMessage').innerHTML = '✅ 簽到完成！<br>一台裝置僅限簽到一次。';
                     } else if (data.result === 'wrong_password') {
-                        msg.textContent = '密碼錯誤，請重新輸入。';
+                        msg.textContent = '❌ 密碼錯誤，請重新輸入。';
                         msg.classList.add('text-danger');
                         document.getElementById('password').value = '';
                         document.getElementById('password').focus();
@@ -139,8 +143,8 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    // 有時候 GAS 成功寫入但 fetch 判定失敗，這裡做寬容處理
-                    msg.textContent = '簽到成功 (或網路回應延遲)';
+                    // 寬容處理
+                    msg.textContent = '✅ 簽到成功 (或網路回應延遲)';
                     msg.classList.add('text-success');
                     document.getElementById('checkinForm').reset();
                 })
