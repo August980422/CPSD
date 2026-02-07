@@ -100,6 +100,21 @@
     </div>
 
     <script>
+
+        const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+
+        if (isMobile) {
+            // 如果是手機，直接清空畫面並顯示警告
+            document.body.innerHTML = `
+            <div style="display:flex; justify-content:center; align-items:center; height:100vh; background-color:#ffe6e6; flex-direction:column; padding:20px;">
+                <h1 style="color:red; font-size:3rem;">❌ 禁止使用手機</h1>
+                <h2 style="color:#333;">本系統偵測到您使用行動裝置。</h2>
+                <h3 style="color:#555;">請使用教室電腦進行簽到。</h3>
+            </div>
+        `;
+            // 停止執行後續程式
+            throw new Error("Mobile device detected. Execution stopped.");
+        }
         // ★★★ 請替換成你的 Google Apps Script 網址 ★★★
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbxqG2sKo9qv6YS_RzvDUnwFoHioZ_GzkGuVOGQbNophkHwJOAEgZu2UZaIDQZBAAAfN/exec';
 
@@ -166,7 +181,7 @@
                         msg.classList.add('text-success');
                     } else if (data.result === 'wrong_password') {
                         throw new Error('密碼錯誤，請重新輸入。');
-                    } else if (data.result === 'duplicate_pc') {
+                    } else if (data.result === 'duplicate_pc' || data.result === 'duplicate_checkin') {
                         throw new Error(`電腦編號 <u>${data.pcNo}</u> 已被使用！<br>請勿重複簽到或代簽。`);
                     } else {
                         throw new Error('系統錯誤：' + (data.error || '未知原因'));
