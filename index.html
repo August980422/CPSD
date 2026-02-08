@@ -65,7 +65,7 @@
             <div class="row g-3 mb-3">
                 <div class="col-6">
                     <label for="classNo" class="form-label">班級</label>
-                    <input type="text" class="form-control" id="classNo" placeholder="209" required>
+                    <input type="number" class="form-control" id="classNo" pattern="\d{3}" placeholder="209" required>
                 </div>
                 <div class="col-6">
                     <label for="seatNo" class="form-label">座號</label>
@@ -75,12 +75,12 @@
 
             <div class="mb-3">
                 <label for="pcNo" class="form-label fw-bold text-success">電腦編號</label>
-                <input type="text" class="form-control border-success" id="pcNo" placeholder="例如：5" required>
+                <input type="number" class="form-control border-success" id="pcNo" placeholder="例如：5" required>
             </div>
 
             <div class="mb-3">
                 <label for="studentId" class="form-label">學號</label>
-                <input type="text" class="form-control" id="studentId" required>
+                <input type="number" class="form-control" pattern="\d{6}" id="studentId" required>
             </div>
 
             <div class="mb-4">
