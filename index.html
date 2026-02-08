@@ -101,11 +101,6 @@
         // ★★★ 請替換成你的 Google Apps Script 網址 ★★★
         const GAS_URL = 'https://script.google.com/macros/s/AKfycby8ZA_9CAovIqLsxt6S_hAsOPmrUApV_csGtCK82PhN1lVcM1rpGJeAbyKDAohkpnsg/exec';
 
-        // 檢查本機是否已簽到 (LocalStorage 防禦)
-        if (localStorage.getItem('hasCheckIn') === 'true') {
-            disableForm('⚠️ 此裝置已完成簽到，請勿重複提交。');
-        }
-
         document.getElementById('checkinForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
@@ -187,7 +182,6 @@
                         // 4. 處理後端回應
                         if (data.result === 'success') {
                             // 寫入 LocalStorage
-                            localStorage.setItem('hasCheckIn', 'true');
                             disableForm('✅ 簽到成功！<br><small class="text-muted">已紀錄位置、IP 與 電腦編號</small>');
                             msg.classList.add('text-success');
                         } else if (data.result === 'wrong_password') {
