@@ -68,35 +68,34 @@
 
         <form id="checkinForm">
             <div class="mb-3">
-                <label for="password" class="form-label text-danger fw-bold">今日簽到密碼</label>
+                <label for="password" class="form-label text-danger fw-bold">密碼</label>
                 <input type="tel" class="form-control border-danger" id="password" placeholder="請輸入密碼" required>
             </div>
 
             <div class="row g-3 mb-3">
                 <div class="col-6">
                     <label for="classNo" class="form-label">班級</label>
-                    <input type="tel" class="form-control" id="classNo" pattern="\d{3}" placeholder="例如 209" required>
+                    <input type="tel" class="form-control" id="classNo" pattern="\d{3}" placeholder="209" required>
                 </div>
                 <div class="col-6">
                     <label for="seatNo" class="form-label">座號</label>
-                    <input type="tel" class="form-control" id="seatNo" pattern="\d{1,2}" placeholder="例如 07" required>
+                    <input type="tel" class="form-control" id="seatNo" pattern="\d{1,2}" placeholder="07" required>
                 </div>
             </div>
 
             <div class="mb-3">
                 <label for="pcNo" class="form-label fw-bold text-success">電腦編號</label>
-                <input type="tel" class="form-control border-success" id="pcNo" pattern="\d+" placeholder="桌上的號碼"
-                    required>
+                <input type="tel" class="form-control border-success" id="pcNo" pattern="\d+" placeholder="00" required>
             </div>
 
             <div class="mb-3">
                 <label for="studentId" class="form-label">學號</label>
-                <input type="tel" class="form-control" pattern="\d{6}" id="studentId" placeholder="6 位數子學號" required>
+                <input type="tel" class="form-control" pattern="\d{6}" id="studentId" required>
             </div>
 
             <div class="mb-4">
                 <label for="name" class="form-label">姓名</label>
-                <input type="text" class="form-control" id="name" placeholder="您的全名" required>
+                <input type="text" class="form-control" id="name" required>
             </div>
 
             <button type="submit" class="btn btn-primary" id="submitBtn">
