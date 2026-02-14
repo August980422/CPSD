@@ -4,92 +4,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>簽到系統</title>
+    <title>社團簽到系統</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #eef2f5;
+            background-color: #f0f4f8;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
         }
 
         .card {
-            max-width: 450px;
-            width: 100%;
+            max-width: 480px;
+            width: 90%;
             border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
 
         .btn-primary {
             width: 100%;
             padding: 12px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            border-radius: 8px;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:disabled {
+            background-color: #a0c4ff;
+            border-color: #a0c4ff;
         }
 
         .form-control {
             border-radius: 8px;
-            padding: 10px;
+            padding: 12px;
+            border: 1px solid #ced4da;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
         }
 
         .spinner-border {
-            display: none;
             width: 1.2rem;
             height: 1.2rem;
+            vertical-align: middle;
             margin-right: 8px;
         }
 
-        .alert-custom {
-            font-size: 0.9rem;
-            margin-top: 10px;
+        #statusMessage {
+            min-height: 24px;
+            transition: all 0.3s ease;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="card p-4 p-md-5">
-        <h3 class="text-center mb-4 text-primary fw-bold">🖥️ 社團簽到</h3>
+    <div class="card p-4">
+        <h3 class="text-center mb-4 text-primary fw-bold">🖥️ 社團活動簽到</h3>
 
         <form id="checkinForm">
-            <div class="mb-4">
-                <label for="password" class="form-label text-danger fw-bold">當日密碼</label>
-                <input type="tel" class="form-control border-danger" id="password" placeholder="密碼" required>
+            <div class="mb-3">
+                <label for="password" class="form-label text-danger fw-bold">今日簽到密碼</label>
+                <input type="tel" class="form-control border-danger" id="password" placeholder="請輸入密碼" required>
             </div>
 
             <div class="row g-3 mb-3">
                 <div class="col-6">
                     <label for="classNo" class="form-label">班級</label>
-                    <input type="tel" class="form-control" id="classNo" pattern="\d{3}" placeholder="209" required>
+                    <input type="tel" class="form-control" id="classNo" pattern="\d{3}" placeholder="例如 209" required>
                 </div>
                 <div class="col-6">
                     <label for="seatNo" class="form-label">座號</label>
-                    <input type="tel" class="form-control" id="seatNo" placeholder="07" required>
+                    <input type="tel" class="form-control" id="seatNo" pattern="\d{1,2}" placeholder="例如 07" required>
                 </div>
             </div>
 
             <div class="mb-3">
                 <label for="pcNo" class="form-label fw-bold text-success">電腦編號</label>
-                <input type="tel" class="form-control border-success" id="pcNo" placeholder="例如：5" required>
+                <input type="tel" class="form-control border-success" id="pcNo" pattern="\d+" placeholder="桌上的號碼"
+                    required>
             </div>
 
             <div class="mb-3">
                 <label for="studentId" class="form-label">學號</label>
-                <input type="tel" class="form-control" pattern="\d{6}" id="studentId" required>
+                <input type="tel" class="form-control" pattern="\d{6}" id="studentId" placeholder="6 位數子學號" required>
             </div>
 
             <div class="mb-4">
                 <label for="name" class="form-label">姓名</label>
-                <input type="text" class="form-control" id="name" required>
+                <input type="text" class="form-control" id="name" placeholder="您的全名" required>
             </div>
 
             <button type="submit" class="btn btn-primary" id="submitBtn">
-                <span class="spinner-border" role="status"></span>
                 送出簽到
             </button>
         </form>
@@ -98,128 +108,115 @@
     </div>
 
     <script>
-        // ★★★ 請替換成你的 Google Apps Script 網址 ★★★
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbw_7iBSjp2pCLs9_q69lTzSq_1iDsvgC4X4oO4fj7VjQsyQyPVwgzIFZu28hJPIMt_g/exec';
 
-        document.getElementById('checkinForm').addEventListener('submit', function (e) {
+        document.getElementById('checkinForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const btn = document.getElementById('submitBtn');
-            const spinner = document.querySelector('.spinner-border');
             const msg = document.getElementById('statusMessage');
 
-            // 鎖定介面
+            // 1. 初始化介面狀態
             btn.disabled = true;
-            spinner.style.display = 'inline-block';
-            btn.innerHTML = '<span class="spinner-border" role="status"></span> 定位中...';
-            msg.textContent = '';
-            msg.className = '';
+            btn.innerHTML = '<span class="spinner-border" role="status"></span> 處理中...';
+            msg.innerHTML = '';
+            msg.className = 'mt-4 text-center fw-bold';
 
-            // ★★★ 取得 GPS 位置 ★★★
-            if (!navigator.geolocation) {
-                handleError("您的瀏覽器不支援定位功能，無法簽到。");
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    // 定位成功
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-
-                    // 開始取得 IP 並傳送資料
-                    getIpAndSend(lat, lng);
-                },
-                (error) => {
-                    // 定位失敗
-                    console.error(error);
-                    handleError("無法取得位置！<br>請允許瀏覽器存取 GPS 定位後再試。");
-                },
-                { enableHighAccuracy: true, timeout: 10000 } // 設定高精確度，10秒逾時
-            );
-
-            function getIpAndSend(lat, lng) {
-                btn.innerHTML = '<span class="spinner-border" role="status"></span> 取得 IP 中...';
-
-                // 1. 取得 IP 位址 (使用 ipify API)
-                fetch('https://api.ipify.org?format=json')
-                    .then(response => response.json())
-                    .then(ipData => {
-                        return ipData.ip;
-                    })
-                    .catch(err => {
-                        console.warn('無法取得 IP:', err);
-                        return '無法取得 IP';
-                    })
-                    .then(userIP => {
-                        // 2. 準備傳送資料
-                        const payload = {
-                            password: document.getElementById('password').value,
-                            classNo: document.getElementById('classNo').value,
-                            seatNo: document.getElementById('seatNo').value,
-                            pcNo: document.getElementById('pcNo').value,
-                            studentId: document.getElementById('studentId').value,
-                            name: document.getElementById('name').value,
-                            ip: userIP, // 傳送 IP
-                            ua: navigator.userAgent, // 傳送裝置資訊 (User Agent)
-                            lat: lat, // ★ 傳送緯度
-                            lng: lng  // ★ 傳送經度
-                        };
-
-                        // 更新按鈕狀態
-                        btn.innerHTML = '<span class="spinner-border" role="status"></span> 資料傳送中...';
-
-                        // 3. 傳送至 Google Apps Script
-                        return fetch(GAS_URL, {
-                            method: 'POST',
-                            body: JSON.stringify(payload),
-                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                            redirect: 'follow'
-                        });
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        // 4. 處理後端回應
-                        if (data.result === 'success') {
-                            // 寫入 LocalStorage
-                            disableForm('✅ 簽到成功！<br><small class="text-muted">已紀錄位置、IP 與 電腦編號</small>');
-                            msg.classList.add('text-success');
-                        } else if (data.result === 'wrong_password') {
-                            throw new Error('密碼錯誤，請重新輸入。');
-                        } else if (data.result === 'duplicate_pc') {
-                            throw new Error(`電腦編號 <u>${data.pcNo}</u> 已被使用！<br>請勿重複簽到。`);
-                        } else {
-                            throw new Error('系統錯誤：' + (data.error || '未知原因'));
+            try {
+                // 2. 同時執行：取得 GPS 定位與 取得使用者 IP (提升效率)
+                // 使用 Promise.all 讓兩個非同步動作並行
+                const [position, userIP] = await Promise.all([
+                    // 定位 Promise
+                    new Promise((resolve, reject) => {
+                        if (!navigator.geolocation) {
+                            reject(new Error("瀏覽器不支援定位"));
                         }
-                    })
-                    .catch(err => {
-                        handleError(err.message);
-                    });
-            }
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000
+                        });
+                    }),
+                    // IP Promise
+                    fetch('https://api.ipify.org?format=json')
+                        .then(res => res.json())
+                        .then(data => data.ip)
+                        .catch(() => '無法取得 IP')
+                ]);
 
-            function handleError(message) {
-                msg.innerHTML = message;
-                msg.className = 'mt-4 text-center fw-bold text-danger';
+                // 3. 整理傳送資料
+                const payload = {
+                    password: document.getElementById('password').value,
+                    classNo: document.getElementById('classNo').value,
+                    seatNo: document.getElementById('seatNo').value,
+                    pcNo: document.getElementById('pcNo').value,
+                    studentId: document.getElementById('studentId').value,
+                    name: document.getElementById('name').value,
+                    ip: userIP,
+                    ua: navigator.userAgent,
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
 
-                // 如果是密碼錯，清空密碼欄位
-                if (message.includes('密碼錯誤')) {
-                    document.getElementById('password').value = '';
-                    document.getElementById('password').focus();
+                btn.innerHTML = '<span class="spinner-border" role="status"></span> 資料上傳中...';
+
+                // 4. 傳送至 Google Apps Script
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    redirect: 'follow'
+                });
+
+                if (!response.ok) throw new Error('伺服器連線失敗');
+
+                const data = await response.json();
+
+                // 5. 根據後端回傳結果處理 UI
+                if (data.result === 'success') {
+                    showSuccess('簽到成功！');
+                } else if (data.result === 'wrong_password') {
+                    throw new Error('密碼錯誤，請重新確認。');
+                } else if (data.result === 'duplicate_pc') {
+                    throw new Error(`電腦編號 ${data.pcNo} 已經簽到過了！`);
+                } else {
+                    throw new Error('發生錯誤：' + (data.error || '未知原因'));
                 }
 
-                // 恢復按鈕
-                btn.disabled = false;
-                btn.innerHTML = '送出簽到';
-                spinner.style.display = 'none';
+            } catch (error) {
+                // 處理所有可能的錯誤 (GPS 失敗、網路失敗、密碼錯誤)
+                let errorText = error.message;
+
+                // 針對 Geolocation 錯誤碼進行友善提示
+                if (error.code === 1) errorText = "請允許瀏覽器存取 GPS 定位，否則無法簽到。";
+                if (error.code === 3) errorText = "定位逾時，請檢查網路或重試。";
+
+                handleError(errorText);
             }
         });
 
-        function disableForm(message) {
+        function showSuccess(message) {
             document.getElementById('checkinForm').style.display = 'none';
             const msgDiv = document.getElementById('statusMessage');
             msgDiv.innerHTML = message;
             msgDiv.className = 'mt-4 text-center fw-bold text-success';
-            if (message.includes('⚠️')) msgDiv.className = 'mt-4 text-center fw-bold text-warning';
+        }
+
+        function handleError(message) {
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('statusMessage');
+
+            msg.innerHTML = message;
+            msg.className = 'mt-4 text-center fw-bold text-danger';
+
+            // 如果是密碼錯，重設密碼欄位
+            if (message.includes('密碼')) {
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            }
+
+            // 恢復按鈕狀態
+            btn.disabled = false;
+            btn.innerHTML = '重新送出簽到';
         }
     </script>
 
