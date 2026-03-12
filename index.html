@@ -26,7 +26,6 @@
             padding: 20px;
         }
 
-        /* 裝飾性背景圓球 */
         .bg-blob {
             position: fixed;
             width: 300px;
@@ -89,7 +88,6 @@
             outline: none;
         }
 
-        /* 密碼欄位特殊提示 */
         .password-field {
             border-left: 4px solid #ff7675 !important;
         }
@@ -109,11 +107,6 @@
         .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 12px 20px rgba(118, 75, 162, 0.35);
-            background: var(--primary-gradient);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
         }
 
         .btn-primary:disabled {
@@ -124,23 +117,6 @@
         #statusMessage {
             font-size: 0.95rem;
             border-radius: 12px;
-            transition: all 0.3s;
-        }
-
-        .success-animation {
-            animation: fadeInScale 0.5s ease-out forwards;
-        }
-
-        @keyframes fadeInScale {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
         }
     </style>
 </head>
@@ -155,7 +131,8 @@
         <form id="checkinForm">
             <div class="mb-3">
                 <label for="password" class="form-label">簽到密碼</label>
-                <input type="tel" class="form-control password-field" id="password" placeholder="••••" required>
+                <input type="password" class="form-control password-field" id="password" placeholder="••••"
+                    inputmode="numeric" pattern="[0-9]*" required>
             </div>
 
             <div class="row g-3 mb-3">
@@ -198,7 +175,6 @@
 
         document.getElementById('checkinForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-
             const btn = document.getElementById('submitBtn');
             const msg = document.getElementById('statusMessage');
 
@@ -230,48 +206,25 @@
                     redirect: 'follow'
                 });
 
-                if (!response.ok) throw new Error('伺服器連線失敗');
-
                 const data = await response.json();
 
                 if (data.result === 'success') {
-                    showSuccess('簽到成功！');
+                    document.getElementById('checkinForm').style.display = 'none';
+                    msg.innerHTML = '<div style="font-size: 1.5rem; color: #00b894;">簽到成功！</div>';
                 } else if (data.result === 'wrong_password') {
-                    throw new Error('密碼錯誤，請重新確認');
+                    throw new Error('密碼錯誤');
                 } else if (data.result === 'duplicate_pc') {
                     throw new Error(`電腦編號 ${data.pcNo} 已簽到`);
                 } else {
-                    throw new Error('發生錯誤：' + (data.error || '未知原因'));
+                    throw new Error('發生錯誤');
                 }
-
             } catch (error) {
-                handleError(error.message);
+                msg.innerHTML = error.message;
+                msg.style.color = '#ff7675';
+                btn.disabled = false;
+                btn.innerHTML = '重新送出簽到';
             }
         });
-
-        function showSuccess(message) {
-            const form = document.getElementById('checkinForm');
-            const msgDiv = document.getElementById('statusMessage');
-
-            form.style.display = 'none';
-            msgDiv.innerHTML = `<div class="success-animation" style="font-size: 1.5rem; color: #00b894;">${message}</div>`;
-        }
-
-        function handleError(message) {
-            const btn = document.getElementById('submitBtn');
-            const msg = document.getElementById('statusMessage');
-
-            msg.innerHTML = message;
-            msg.style.color = '#ff7675';
-
-            if (message.includes('密碼')) {
-                document.getElementById('password').value = '';
-                document.getElementById('password').focus();
-            }
-
-            btn.disabled = false;
-            btn.innerHTML = '重新送出簽到';
-        }
     </script>
 </body>
 
