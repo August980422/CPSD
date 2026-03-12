@@ -235,11 +235,11 @@
                 const data = await response.json();
 
                 if (data.result === 'success') {
-                    showSuccess('✨ 簽到成功！');
+                    showSuccess('簽到成功！');
                 } else if (data.result === 'wrong_password') {
-                    throw new Error('❌ 密碼錯誤，請重新確認');
+                    throw new Error('密碼錯誤，請重新確認');
                 } else if (data.result === 'duplicate_pc') {
-                    throw new Error(`⚠️ 電腦編號 ${data.pcNo} 已簽到`);
+                    throw new Error(`電腦編號 ${data.pcNo} 已簽到`);
                 } else {
                     throw new Error('發生錯誤：' + (data.error || '未知原因'));
                 }
