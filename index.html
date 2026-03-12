@@ -107,7 +107,7 @@
     </div>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbw_7iBSjp2pCLs9_q69lTzSq_1iDsvgC4X4oO4fj7VjQsyQyPVwgzIFZu28hJPIMt_g/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxVRfwR2HqPUx2Pxg6EBVkKvV07wlwrPM_xi5mUzts6Nb30GhrF5-3DtD9ncDV0VhT6/exec';
 
         document.getElementById('checkinForm').addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -122,27 +122,13 @@
             msg.className = 'mt-4 text-center fw-bold';
 
             try {
-                // 2. 同時執行：取得 GPS 定位與 取得使用者 IP (提升效率)
-                // 使用 Promise.all 讓兩個非同步動作並行
-                const [position, userIP] = await Promise.all([
-                    // 定位 Promise
-                    new Promise((resolve, reject) => {
-                        if (!navigator.geolocation) {
-                            reject(new Error("瀏覽器不支援定位"));
-                        }
-                        navigator.geolocation.getCurrentPosition(resolve, reject, {
-                            enableHighAccuracy: true,
-                            timeout: 10000
-                        });
-                    }),
-                    // IP Promise
-                    fetch('https://api.ipify.org?format=json')
-                        .then(res => res.json())
-                        .then(data => data.ip)
-                        .catch(() => '無法取得 IP')
-                ]);
+                // 2. 僅取得使用者 IP
+                const userIP = await fetch('https://api.ipify.org?format=json')
+                    .then(res => res.json())
+                    .then(data => data.ip)
+                    .catch(() => '無法取得 IP');
 
-                // 3. 整理傳送資料
+                // 3. 整理傳送資料 (已移除 lat, lng)
                 const payload = {
                     password: document.getElementById('password').value,
                     classNo: document.getElementById('classNo').value,
@@ -151,9 +137,7 @@
                     studentId: document.getElementById('studentId').value,
                     name: document.getElementById('name').value,
                     ip: userIP,
-                    ua: navigator.userAgent,
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
+                    ua: navigator.userAgent
                 };
 
                 btn.innerHTML = '<span class="spinner-border" role="status"></span> 資料上傳中...';
@@ -182,13 +166,7 @@
                 }
 
             } catch (error) {
-                // 處理所有可能的錯誤 (GPS 失敗、網路失敗、密碼錯誤)
                 let errorText = error.message;
-
-                // 針對 Geolocation 錯誤碼進行友善提示
-                if (error.code === 1) errorText = "請允許瀏覽器存取 GPS 定位，否則無法簽到。";
-                if (error.code === 3) errorText = "定位逾時，請檢查網路或重試。";
-
                 handleError(errorText);
             }
         });
@@ -207,13 +185,11 @@
             msg.innerHTML = message;
             msg.className = 'mt-4 text-center fw-bold text-danger';
 
-            // 如果是密碼錯，重設密碼欄位
             if (message.includes('密碼')) {
                 document.getElementById('password').value = '';
                 document.getElementById('password').focus();
             }
 
-            // 恢復按鈕狀態
             btn.disabled = false;
             btn.innerHTML = '重新送出簽到';
         }
