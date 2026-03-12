@@ -6,70 +6,156 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>社團簽到系統</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --input-bg: rgba(243, 244, 246, 0.8);
+        }
+
         body {
-            background-color: #f0f4f8;
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            background-attachment: fixed;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            font-family: 'Noto Sans TC', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* 裝飾性背景圓球 */
+        .bg-blob {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            background: var(--primary-gradient);
+            filter: blur(80px);
+            opacity: 0.2;
+            z-index: -1;
+            border-radius: 50%;
+        }
+
+        .blob-1 {
+            top: -100px;
+            left: -100px;
+        }
+
+        .blob-2 {
+            bottom: -100px;
+            right: -100px;
         }
 
         .card {
-            max-width: 480px;
-            width: 90%;
-            border: none;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-primary {
+            max-width: 440px;
             width: 100%;
-            padding: 12px;
-            font-weight: 600;
-            border-radius: 10px;
-            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            padding: 2.5rem;
         }
 
-        .btn-primary:disabled {
-            background-color: #a0c4ff;
-            border-color: #a0c4ff;
+        .card-title {
+            color: #2d3436;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #636e72;
+            margin-bottom: 6px;
+            padding-left: 4px;
         }
 
         .form-control {
-            border-radius: 8px;
-            padding: 12px;
-            border: 1px solid #ced4da;
+            border: 1px solid transparent;
+            background-color: var(--input-bg);
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.25s ease;
+            color: #2d3436;
         }
 
         .form-control:focus {
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+            background-color: #fff;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            outline: none;
         }
 
-        .spinner-border {
-            width: 1.2rem;
-            height: 1.2rem;
-            vertical-align: middle;
-            margin-right: 8px;
+        /* 密碼欄位特殊提示 */
+        .password-field {
+            border-left: 4px solid #ff7675 !important;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 15px rgba(118, 75, 162, 0.25);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(118, 75, 162, 0.35);
+            background: var(--primary-gradient);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            background: #95a5a6;
         }
 
         #statusMessage {
-            min-height: 24px;
-            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .success-animation {
+            animation: fadeInScale 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
     </style>
 </head>
 
 <body>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
 
-    <div class="card p-4">
-        <h3 class="text-center mb-4 text-primary fw-bold">社團點名</h3>
+    <div class="card">
+        <h2 class="text-center fw-bold card-title">社團點名</h2>
 
         <form id="checkinForm">
             <div class="mb-3">
-                <label for="password" class="form-label text-danger fw-bold">密碼</label>
-                <input type="tel" class="form-control border-danger" id="password" placeholder="請輸入密碼" required>
+                <label for="password" class="form-label">簽到密碼</label>
+                <input type="tel" class="form-control password-field" id="password" placeholder="••••" required>
             </div>
 
             <div class="row g-3 mb-3">
@@ -84,26 +170,27 @@
             </div>
 
             <div class="mb-3">
-                <label for="pcNo" class="form-label fw-bold text-success">電腦編號</label>
-                <input type="tel" class="form-control border-success" id="pcNo" pattern="\d+" placeholder="00" required>
+                <label for="pcNo" class="form-label">電腦編號</label>
+                <input type="tel" class="form-control" id="pcNo" pattern="\d+" placeholder="00"
+                    style="border-left: 4px solid #55efc4 !important;" required>
             </div>
 
             <div class="mb-3">
                 <label for="studentId" class="form-label">學號</label>
-                <input type="tel" class="form-control" pattern="\d{6}" id="studentId" required>
+                <input type="tel" class="form-control" pattern="\d{6}" id="studentId" placeholder="110001" required>
             </div>
 
             <div class="mb-4">
                 <label for="name" class="form-label">姓名</label>
-                <input type="text" class="form-control" id="name" required>
+                <input type="text" class="form-control" id="name" placeholder="請輸入姓名" required>
             </div>
 
-            <button type="submit" class="btn btn-primary" id="submitBtn">
-                送出簽到
+            <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+                確認簽到
             </button>
         </form>
 
-        <div id="statusMessage" class="mt-4 text-center fw-bold"></div>
+        <div id="statusMessage" class="mt-3 text-center fw-bold p-2"></div>
     </div>
 
     <script>
@@ -115,20 +202,16 @@
             const btn = document.getElementById('submitBtn');
             const msg = document.getElementById('statusMessage');
 
-            // 1. 初始化介面狀態
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border" role="status"></span> 處理中...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> 處理中...';
             msg.innerHTML = '';
-            msg.className = 'mt-4 text-center fw-bold';
 
             try {
-                // 2. 僅取得使用者 IP
                 const userIP = await fetch('https://api.ipify.org?format=json')
                     .then(res => res.json())
                     .then(data => data.ip)
                     .catch(() => '無法取得 IP');
 
-                // 3. 整理傳送資料 (已移除 lat, lng)
                 const payload = {
                     password: document.getElementById('password').value,
                     classNo: document.getElementById('classNo').value,
@@ -140,9 +223,6 @@
                     ua: navigator.userAgent
                 };
 
-                btn.innerHTML = '<span class="spinner-border" role="status"></span> 資料上傳中...';
-
-                // 4. 傳送至 Google Apps Script
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload),
@@ -154,28 +234,27 @@
 
                 const data = await response.json();
 
-                // 5. 根據後端回傳結果處理 UI
                 if (data.result === 'success') {
-                    showSuccess('簽到成功！');
+                    showSuccess('✨ 簽到成功！');
                 } else if (data.result === 'wrong_password') {
-                    throw new Error('密碼錯誤，請重新確認。');
+                    throw new Error('❌ 密碼錯誤，請重新確認');
                 } else if (data.result === 'duplicate_pc') {
-                    throw new Error(`電腦編號 ${data.pcNo} 已經簽到過了！`);
+                    throw new Error(`⚠️ 電腦編號 ${data.pcNo} 已簽到`);
                 } else {
                     throw new Error('發生錯誤：' + (data.error || '未知原因'));
                 }
 
             } catch (error) {
-                let errorText = error.message;
-                handleError(errorText);
+                handleError(error.message);
             }
         });
 
         function showSuccess(message) {
-            document.getElementById('checkinForm').style.display = 'none';
+            const form = document.getElementById('checkinForm');
             const msgDiv = document.getElementById('statusMessage');
-            msgDiv.innerHTML = message;
-            msgDiv.className = 'mt-4 text-center fw-bold text-success';
+
+            form.style.display = 'none';
+            msgDiv.innerHTML = `<div class="success-animation" style="font-size: 1.5rem; color: #00b894;">${message}</div>`;
         }
 
         function handleError(message) {
@@ -183,7 +262,7 @@
             const msg = document.getElementById('statusMessage');
 
             msg.innerHTML = message;
-            msg.className = 'mt-4 text-center fw-bold text-danger';
+            msg.style.color = '#ff7675';
 
             if (message.includes('密碼')) {
                 document.getElementById('password').value = '';
@@ -194,7 +273,6 @@
             btn.innerHTML = '重新送出簽到';
         }
     </script>
-
 </body>
 
 </html>
